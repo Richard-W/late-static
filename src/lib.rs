@@ -52,6 +52,12 @@ impl<T> LateStatic<T> {
             *option = Some(val);
         }
     }
+
+    /// Whether a value is assigned to this LateStatic.
+    pub unsafe fn is_assigned(&self) -> bool {
+        let option: &Option<T> = &*self.val.get();
+        option.is_some()
+    }
 }
 
 impl<T> core::ops::Deref for LateStatic<T> {
@@ -88,7 +94,9 @@ mod tests {
     #[test]
     fn assign_once() {
         unsafe {
+            assert!(!ASSIGN_ONCE_TEST.is_assigned());
             ASSIGN_ONCE_TEST.assign(42);
+            assert!(ASSIGN_ONCE_TEST.is_assigned());
         }
     }
 
