@@ -79,3 +79,51 @@ impl<T> core::ops::DerefMut for LateStatic<T> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    static ASSIGN_ONCE_TEST: LateStatic<u32> = LateStatic::new();
+    #[test]
+    fn assign_once() {
+        unsafe {
+            ASSIGN_ONCE_TEST.assign(42);
+        }
+    }
+
+
+    static ASSIGN_TWICE_TEST: LateStatic<u32> = LateStatic::new();
+    #[test]
+    #[should_panic]
+    fn assign_twice() {
+        unsafe {
+            ASSIGN_TWICE_TEST.assign(42);
+            ASSIGN_TWICE_TEST.assign(37);
+        }
+    }
+
+    struct Foo {
+        pub value: u32,
+    }
+
+    static DEREF_CONST_TEST: LateStatic<Foo> = LateStatic::new();
+    #[test]
+    fn deref_const() {
+        unsafe {
+            DEREF_CONST_TEST.assign(Foo { value: 42 });
+        }
+        assert_eq!(DEREF_CONST_TEST.value, 42);
+    }
+
+    static mut DEREF_MUT_TEST: LateStatic<Foo> = LateStatic::new();
+    #[test]
+    fn deref_mut() {
+        unsafe {
+            DEREF_MUT_TEST.assign(Foo { value: 42 });
+            assert_eq!(DEREF_MUT_TEST.value, 42);
+            DEREF_MUT_TEST.value = 37;
+            assert_eq!(DEREF_MUT_TEST.value, 37);
+        }
+    }
+}
