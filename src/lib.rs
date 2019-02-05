@@ -163,4 +163,13 @@ mod tests {
             assert!(!LateStatic::is_assigned(&CLEAR_TEST));
         }
     }
+
+    static mut CLEAR_WITHOUT_VALUE: LateStatic<Foo> = LateStatic::new();
+    #[test]
+    #[should_panic]
+    fn clear_without_value() {
+        unsafe {
+            LateStatic::clear(&CLEAR_WITHOUT_VALUE);
+        }
+    }
 }
