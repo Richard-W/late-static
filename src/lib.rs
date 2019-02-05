@@ -23,7 +23,7 @@ use core::cell::UnsafeCell;
 
 /// Static value that is manually initialized at runtime.
 pub struct LateStatic<T> {
-    val: UnsafeCell<Option<T>>
+    val: UnsafeCell<Option<T>>,
 }
 
 unsafe impl<T: Send> core::marker::Send for LateStatic<T> {}
@@ -51,6 +51,15 @@ impl<T> LateStatic<T> {
         else {
             *option = Some(val);
         }
+    }
+
+    /// Invalidate the late static by removing its inner value.
+    pub unsafe fn clear(instance: &LateStatic<T>) {
+        if !Self::is_assigned(instance) {
+            panic!("Tried to clear a late static without a value");
+        }
+        let option: &mut Option<T> = &mut *instance.val.get();
+        *option = None;
     }
 
     /// Whether a value is assigned to this LateStatic.
@@ -132,6 +141,17 @@ mod tests {
             assert_eq!(DEREF_MUT_TEST.value, 42);
             DEREF_MUT_TEST.value = 37;
             assert_eq!(DEREF_MUT_TEST.value, 37);
+        }
+    }
+
+    static mut CLEAR_TEST: LateStatic<Foo> = LateStatic::new();
+    #[test]
+    fn clear() {
+        unsafe {
+            LateStatic::assign(&CLEAR_TEST, Foo { value: 42 });
+            assert_eq!(CLEAR_TEST.value, 42);
+            LateStatic::clear(&CLEAR_TEST);
+            assert!(!LateStatic::is_assigned(&CLEAR_TEST));
         }
     }
 }
