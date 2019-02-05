@@ -12,7 +12,7 @@
 //!
 //! fn main() {
 //!     unsafe {
-//!         FOO.assign(Foo { value: 42 });
+//!         LateStatic::assign(&FOO, Foo { value: 42 });
 //!     }
 //!     println!("{}", FOO.value);
 //! }
@@ -43,8 +43,8 @@ impl<T> LateStatic<T> {
     ///
     /// This is completely unsafe if there is even the slightest chance of another
     /// thread trying to dereference the variable.
-    pub unsafe fn assign(&self, val: T) {
-        let option: &mut Option<T> = &mut *self.val.get();
+    pub unsafe fn assign(instance: &LateStatic<T>, val: T) {
+        let option: &mut Option<T> = &mut *instance.val.get();
         if option.is_some() {
             panic!("Second assignment to late static");
         }
@@ -54,8 +54,8 @@ impl<T> LateStatic<T> {
     }
 
     /// Whether a value is assigned to this LateStatic.
-    pub unsafe fn is_assigned(&self) -> bool {
-        let option: &Option<T> = &*self.val.get();
+    pub unsafe fn is_assigned(instance: &LateStatic<T>) -> bool {
+        let option: &Option<T> = &*instance.val.get();
         option.is_some()
     }
 }
@@ -94,9 +94,9 @@ mod tests {
     #[test]
     fn assign_once() {
         unsafe {
-            assert!(!ASSIGN_ONCE_TEST.is_assigned());
-            ASSIGN_ONCE_TEST.assign(42);
-            assert!(ASSIGN_ONCE_TEST.is_assigned());
+            assert!(!LateStatic::is_assigned(&ASSIGN_ONCE_TEST));
+            LateStatic::assign(&ASSIGN_ONCE_TEST, 42);
+            assert!(LateStatic::is_assigned(&ASSIGN_ONCE_TEST));
         }
     }
 
@@ -106,8 +106,8 @@ mod tests {
     #[should_panic]
     fn assign_twice() {
         unsafe {
-            ASSIGN_TWICE_TEST.assign(42);
-            ASSIGN_TWICE_TEST.assign(37);
+            LateStatic::assign(&ASSIGN_TWICE_TEST, 42);
+            LateStatic::assign(&ASSIGN_TWICE_TEST, 37);
         }
     }
 
@@ -119,7 +119,7 @@ mod tests {
     #[test]
     fn deref_const() {
         unsafe {
-            DEREF_CONST_TEST.assign(Foo { value: 42 });
+            LateStatic::assign(&DEREF_CONST_TEST, Foo { value: 42 });
         }
         assert_eq!(DEREF_CONST_TEST.value, 42);
     }
@@ -128,7 +128,7 @@ mod tests {
     #[test]
     fn deref_mut() {
         unsafe {
-            DEREF_MUT_TEST.assign(Foo { value: 42 });
+            LateStatic::assign(&DEREF_MUT_TEST, Foo { value: 42 });
             assert_eq!(DEREF_MUT_TEST.value, 42);
             DEREF_MUT_TEST.value = 37;
             assert_eq!(DEREF_MUT_TEST.value, 37);
