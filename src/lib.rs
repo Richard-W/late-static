@@ -144,6 +144,15 @@ mod tests {
         }
     }
 
+    static mut DEREF_WITHOUT_VALUE: LateStatic<Foo> = LateStatic::new();
+    #[test]
+    #[should_panic]
+    fn deref_without_value() {
+        unsafe {
+            DEREF_WITHOUT_VALUE.value;
+        }
+    }
+
     static mut CLEAR_TEST: LateStatic<Foo> = LateStatic::new();
     #[test]
     fn clear() {
