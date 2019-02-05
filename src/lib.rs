@@ -55,7 +55,7 @@ impl<T> LateStatic<T> {
 
     /// Invalidate the late static by removing its inner value.
     pub unsafe fn clear(instance: &LateStatic<T>) {
-        if !Self::is_assigned(instance) {
+        if !Self::has_value(instance) {
             panic!("Tried to clear a late static without a value");
         }
         let option: &mut Option<T> = &mut *instance.val.get();
@@ -63,7 +63,7 @@ impl<T> LateStatic<T> {
     }
 
     /// Whether a value is assigned to this LateStatic.
-    pub unsafe fn is_assigned(instance: &LateStatic<T>) -> bool {
+    pub unsafe fn has_value(instance: &LateStatic<T>) -> bool {
         let option: &Option<T> = &*instance.val.get();
         option.is_some()
     }
@@ -103,9 +103,9 @@ mod tests {
     #[test]
     fn assign_once() {
         unsafe {
-            assert!(!LateStatic::is_assigned(&ASSIGN_ONCE_TEST));
+            assert!(!LateStatic::has_value(&ASSIGN_ONCE_TEST));
             LateStatic::assign(&ASSIGN_ONCE_TEST, 42);
-            assert!(LateStatic::is_assigned(&ASSIGN_ONCE_TEST));
+            assert!(LateStatic::has_value(&ASSIGN_ONCE_TEST));
         }
     }
 
@@ -160,7 +160,7 @@ mod tests {
             LateStatic::assign(&CLEAR_TEST, Foo { value: 42 });
             assert_eq!(CLEAR_TEST.value, 42);
             LateStatic::clear(&CLEAR_TEST);
-            assert!(!LateStatic::is_assigned(&CLEAR_TEST));
+            assert!(!LateStatic::has_value(&CLEAR_TEST));
         }
     }
 
