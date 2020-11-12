@@ -41,19 +41,25 @@ impl<T> LateStatic<T> {
     ///
     /// This only works once. A second call to assign for a given variable will panic.
     ///
+    /// # Safety
+    ///
     /// This is completely unsafe if there is even the slightest chance of another
     /// thread trying to dereference the variable.
     pub unsafe fn assign(instance: &LateStatic<T>, val: T) {
         let option: &mut Option<T> = &mut *instance.val.get();
         if option.is_some() {
             panic!("Second assignment to late static");
-        }
-        else {
+        } else {
             *option = Some(val);
         }
     }
 
     /// Invalidate the late static by removing its inner value.
+    ///
+    /// # Safety
+    ///
+    /// This is completely unsafe if there is even the slightest chance of another
+    /// thread trying to dereference the variable.
     pub unsafe fn clear(instance: &LateStatic<T>) {
         if !Self::has_value(instance) {
             panic!("Tried to clear a late static without a value");
@@ -63,6 +69,11 @@ impl<T> LateStatic<T> {
     }
 
     /// Whether a value is assigned to this LateStatic.
+    ///
+    /// # Safety
+    ///
+    /// This is completely unsafe if there is even the slightest chance of another
+    /// thread trying to dereference the variable.
     pub unsafe fn has_value(instance: &LateStatic<T>) -> bool {
         let option: &Option<T> = &*instance.val.get();
         option.is_some()
@@ -109,7 +120,6 @@ mod tests {
         }
     }
 
-
     static ASSIGN_TWICE_TEST: LateStatic<u32> = LateStatic::new();
     #[test]
     #[should_panic]
@@ -149,6 +159,7 @@ mod tests {
     #[should_panic]
     fn deref_without_value() {
         unsafe {
+            #[allow(clippy::no_effect)]
             DEREF_WITHOUT_VALUE.value;
         }
     }
