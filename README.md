@@ -9,4 +9,4 @@
 
 ---
 
-Please refer to the latest [docs](https://docs.rs/late-static/latest/late-static/).
+Please refer to the latest [docs](https://docs.rs/late-static/latest/late_static/).
