@@ -27,7 +27,7 @@ pub struct LateStatic<T> {
 }
 
 unsafe impl<T: Send> core::marker::Send for LateStatic<T> {}
-unsafe impl<T: Send> core::marker::Sync for LateStatic<T> {}
+unsafe impl<T: Sync> core::marker::Sync for LateStatic<T> {}
 
 impl<T> LateStatic<T> {
     /// Construct a LateStatic.
